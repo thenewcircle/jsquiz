@@ -2,73 +2,247 @@
 <html>
   <head>
     <title>NewCircle JavaScript Proficiency Quiz</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular-animate.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular-sanitize.min.js"></script>
-
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular-cookies.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular-sanitize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.0/lodash.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/css/bootstrap.css"/>
+    <link rel="stylesheet" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/css/bootstrap-theme.css"/>
+    <script src="https://google.github.io/traceur-compiler/bin/traceur.js"></script>
     <script src="quiz.js"></script>
+    <link rel="stylesheet" media="screen" href="checkbox-radio.css"/>
     <link rel="stylesheet" media="screen" href="jsquiz.css"/>
   </head>
 
   <body ng-app="JsQuiz">
 
-    <div style="display:none"
-         id="quiz-config"
-         data-score-element="#score"
-         data-prefix="jsquiz"
-         data-questions="1 2 3 4 5"
-         data-show-transition-duration="500"
-         data-show-transition-effect="blind"
-         data-hide-transition-duration="500"
-         data-hide-transition-effect="fade">
-    </div>
-
-    <div id="outer">
-      <div id="logo">
-        <img src="logo.png"/>
-      </div>
-
-      <div id="header">
-        <h1>New Circle JavaScript Proficiency Quiz</h1>
-      </div>
-
-      <div id="content" ng-controller="QuizCtrl">
-        <div ng-show="questions">
-
-          <div id="jsquiz-intro" ng-show="step === 'intro'">
-            This {{questions.length}}-question quiz tests your JavaScript
-            proficiency. A score of less than 80% means you might have some
-            trouble with the AngularJS course. A score of less than 70% means
-            you <i>will</i> have trouble with the course.
-
-            <div class="next-button">
-              <button ng-click="startQuiz()">Continue...</button>
-            </div>
-
+    <div id="outer" class="container-fluid">
+      <div class="row">
+        <div class="col-md-1">
+          <div id="logo">
+            <img src="logo.png"/>
           </div>
+        </div>
+        <div class="col-md-5 col-md-offset-6">
+          <div id="header">
+            <h1>JavaScript Proficiency Quiz</h1>
+          </div>
+        </div>
+      </div>
 
-          <div id="current-question" ng-show="currentQuestion">
-            <div class="question" ng-bind="currentQuestion.question"></div>
+      <div class="row">
+        <div class="col-md-8 col-md-offset-2">
 
-            <div class="answers">
-              <div ng-show="currentQuestion.type === 'choice'">
-                <div ng-repeat="a in currentQuestion.answers">
-                  <input type="radio" ng-model="currentQuestion.choice"
-                         value="{{$index}}">
-                  <span ng-bind-html="a.answer"></span>
+          <div id="content" ng-controller="QuizCtrl">
+            <div ng-show="questions">
+
+              <div id="jsquiz-intro" ng-show="step === 'intro'">
+                <div class="row">
+                  <div class="col-md-10">
+                    <p>
+                      This {{questions.length}}-question quiz tests your
+                      JavaScript proficiency. A score of less than 80% means
+                      you might have some trouble with the AngularJS course. A
+                      score of less than 70% means you <i>will</i> have trouble
+                      with the course.
+                    </p>
+
+                    <p>
+                      Each question will appear on its own screen. Answer the
+                      question, then press the
+                      <a href="" role="button" class="btn btn-primary btn-sm">
+                        Next
+                      </a>
+                      button to submit your answer.
+                    </p>
+
+                    <p>
+                      Some questions require you to enter some JavaScript code.
+                      Those questions will have a
+                      <a href="" role="button" class="btn btn-primary btn-sm">
+                        Test Your Answer
+                      </a>
+                      button you can use to determine whether your answer is
+                      correct <i>before</i> pressing the
+                      <a href="" role="button" class="btn btn-primary btn-sm">
+                        Next
+                      </a>
+                      button to submit the answer.
+                    </p>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="next-button">
+                      <button ng-click="startQuiz()"
+                              class="btn btn-primary btn-lg">
+                        Continue...
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="current-question"
+                   ng-show="currentQuestion && step === 'questions'">
+                <div class="row heading">
+                  <div class="col-md-2">
+                    <div class="question-number">
+                      Question {{questionIndex + 1}}
+                    </div>
+                  </div>
+                  <div class="heading">
+                    <div class="score col-md-3 pull-right">
+                      Current score: {{correctAnswers}} / {{questions.length}}
+                      ({{score}}%)
+                    </div>
+
+                  </div>
                 </div>
 
-                <div class="next-button">
-                  <button ng-click="nextQuestion()"
-                          ng-disabled="!currentQuestion.choice">Next</button>
+                <div class="row">
+                  <div class="col-md-10">
+                    <div class="question" ng-bind-html="currentQuestion.question">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-10">
+                    <div class="answer-block">
+                      <div ng-show="currentQuestion.type === 'jscode'"
+                           class="code-question">
+                        <textarea ng-model="currentQuestion.answer"
+                                  class="code-block"></textarea>
+                        <button ng-click="testCodeAnswer(currentQuestion)"
+                                ng-disabled="currentQuestion.triesLeft() === 0"
+                                class="try-button btn btn-primary btn-lg">
+                          Test Your Answer
+                          (<span ng-bind="currentQuestion.triesLeft()"></span>
+                          tries left)
+                        </button>
+                        <!-- Don't show if the user hasn't tried yet. -->
+                        <div ng-hide="currentQuestion.tries === 0"
+                             class="try-result">
+                          <span class="incorrect" ng-hide="currentQuestion.isCorrect">
+                            Incorrect.
+                          </span>
+                          <span class="correct" ng-show="currentQuestion.isCorrect">
+                            Correct.
+                          </span>
+                        </div>
+                      </div>
+
+                      <div ng-show="currentQuestion.type === 'choice'"
+                           class="multiple-choice-question">
+                        <div class="answers">
+                          <div ng-repeat="a in currentQuestion.answers">
+                            <input type="radio" ng-model="currentQuestion.answer"
+                                   value="{{$index}}" class="css-checkbox"
+                                   id="radio-{{$index}}">
+                            <label for="radio-{{$index}}" class="css-label"
+                                   ng-bind-html="a.answer"></label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="next-button col-md-2 pull-right">
+                    <button ng-click="recordAnswer()"
+                            ng-disabled="!currentQuestion.answer"
+                            class="btn btn-primary btn-lg">
+                      Next
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+              <div ng-show="step === 'wrap-up'" id="wrap-up">
+                <div class="row">
+                  <div class="col-md-10">
+                    <div id="score" ng-show="score">
+                      You got {{correctAnswers}} out of {{questions.length}} right,
+                      for a score of {{score}}%.
+                    </div>
+
+                    <div class="admonition">
+                      <div ng-show="score < 80 && score >= 70">
+                        You <i>may</i> have trouble with this course.
+                      </div>
+
+                      <div ng-show="score < 70">
+                        You <i>will</i> have trouble with this course.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="incorrect-answers" ng-show="incorrectAnswers">
+
+                  <div class="row">
+                    <div class="col-md-12 heading">
+                      <hr/>
+                      You answered the following
+                      <span ng-show="incorrectAnswers.length === 1">
+                        question
+                      </span>
+                      <span ng-show="incorrectAnswers.length > 1">
+                        {{incorrectAnswers.length}} questions
+                      </span>
+                      incorrectly.
+                    </div>
+                  </div>
+
+                  <div ng-repeat="a in incorrectAnswers">
+                    <div class="incorrect-answer">
+                      <div class="row">
+                        <div class="col-md-2">
+                          <strong>Question {{a.questionIndex + 1}}</strong>
+                        </div>
+                        <div class="col-md-10" ng-bind-html="a.question">
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-2 incorrect-answer-label">
+                          You answered:
+                        </div>
+                        <div class="col-md-10">
+                          <div ng-switch="a.questionType">
+                            <div ng-switch-when="jscode">
+                              <pre ng-bind-html="a.incorrectAnswer"></pre>
+                            </div>
+                            <div ng-switch-default
+                                 ng-bind-html="a.incorrectAnswer"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-2 correct-answer-label">
+                          Correct answer:
+                        </div>
+                        <div class="col-md-10">
+                          <div ng-switch="a.questionType">
+                            <div ng-switch-when="jscode">
+                              <pre ng-bind-html="a.correctAnswer"></pre>
+                            </div>
+                            <div ng-switch-default
+                                 ng-bind-html="a.correctAnswer"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div id="score" style="display:none">
-          </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div id="footer"></div>
         </div>
       </div>
 

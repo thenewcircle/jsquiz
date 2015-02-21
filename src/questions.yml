@@ -1,0 +1,385 @@
+# YAML question input. There are two kinds of questions, each documented below.
+#
+# ---------------
+# type = "choice"
+# ---------------
+#
+# This is a multiple choice question. The following fields are required:
+#
+# question: The text of the question. Embedded HTML is permitted. Multiline
+#           values should use the YAML ">" (folded) or "|" (literal) style.
+#           See http://michael.f1337.us/2010/03/30/482836205/
+# type:     "choice"
+# answers:  A list of answers. Each answer must have two fields:
+#
+#           answer: The answer (choice) to display to the user.
+#           correct: true if it's the correct answer; false otherwise.
+#
+# ---------------
+# type = "jscode"
+# ---------------
+#
+# This is a question that requires the student to enter some Javascript code
+# to be evaluated. The following fields are required.
+#
+# question:       The text of the question. Embedded HTML is permitted. Multiline
+#                 values should use the YAML ">" (folded) or "|" (literal) style.
+#                 See http://michael.f1337.us/2010/03/30/482836205/
+# type:           "jscode"
+# wrapper:        Wrapper JavaScript code. The user's code will be inserted
+#                 into the wrapper, replacing a special token. (You need to
+#                 include the token in the wrapper *AND* specify the token in
+#                 the "token" field.) The wrapper will be executed by the quiz
+#                 driver, and its result will be tested against the
+#                 "expectedAnswer" field. Here's an example:
+#
+#                 wrapper: |
+#                   (function() {
+#                     var userFunc = @obj@;
+#                     return userFunc(10) == 100;
+#                   })();
+#
+#                 This example wrapper returns true or false; "expectedAnswer"
+#                 must be one of those values. The token string is "@obj@", so
+#                 "token" must be set to that value.
+# token:          The token that will be replaced with the student's code.
+# expectedAnswer: The answer expected to be returned from the wrapper.
+# correctCode:    A code snippet representing what the answer *SHOULD* be,
+#                 for display.
+
+questions:
+
+  - question: "Which of the following represents a valid JavaScript comment?"
+    type: "choice"
+    answers:
+    - answer:  "<code>-- This is a comment</code>"
+      correct: false
+    - answer:  "<code># This is a comment</code>"
+      correct: false
+    - answer:  "<code>// This is a comment</code>"
+      correct: true
+    - answer:  "<code>** This is a comment **</code>"
+      correct: false
+
+  - question: |
+      How do you create a variable <code>s</code> that is set to the string
+      "Angular"?
+    type: "choice"
+    answers:
+    - answer:  "<code>String s = \"Hello\";</code>"
+      correct: false
+    - answer:  "<code>string s = \"Hello\";</code>"
+      correct: false
+    - answer:  "<code>var s = \"Hello\";</code>"
+      correct: true
+    - answer:  "<code>s = \"Hello\";</code>"
+      correct: false
+
+  - question: |
+      How do you create a variable <code>i</code> that is set to the integer 10?
+    type: "choice"
+    answers:
+    - answer:  "<code>int i = 10;</code>"
+      correct: false
+    - answer:  "<code>var i = 10;</code>"
+      correct: true
+    - answer:  "<code>Integer i = 10;</code>"
+      correct: true
+    - answer:  "<code>i = 10;</code>"
+      correct: false
+
+  - question: "What is the keyword to define a function?"
+    type: "choice"
+    answers:
+    - answer:  "<code>def</code>"
+      correct: false
+    - answer:  "<code>func</code>"
+      correct: false
+    - answer:  "<code>public</code>"
+      correct: false
+    - answer:  "<code>function</code>"
+      correct: true
+    - answer:  "None of the above"
+      correct: false
+
+  - question: "What two statements can you use to handle errors?"
+    type: "choice"
+    answers:
+    - answer:  "<code>try/catch</code>"
+      correct: true
+    - answer:  "<code>try/except</code>"
+      correct: false
+    - answer:  "<code>begin/rescue</code>"
+      correct: false
+    - answer:  "None of the above"
+      correct: false
+
+  - question: |
+      Using jQuery, how can you select an HTML element with ID "heading"?
+    type: "choice"
+    answers:
+    - answer:  "<code>$('heading')</code>"
+      correct: false
+    - answer:  "<code>$('id=heading')</code>"
+      correct: false
+    - answer:  "<code>$(id: 'heading')</code>"
+      correct: false
+    - answer:  "<code>$('#heading')</code>"
+      correct: true
+    - answer:  "None of the above"
+      correct: false
+
+  - question: |
+      If you have a string variable, <code>s</code>, how do you determine its
+      length?
+    type: "choice"
+    answers:
+    - answer:  "<code>length(s)</code>"
+      correct: false
+    - answer:  "<code>len(s)<code>"
+      correct: false
+    - answer:  "<code>s.length</code>"
+      correct: true
+    - answer:  "<code>s.size</code>"
+      correct: false
+
+  - question: |
+      How do you convert a string, <code>s</code>, to lower case?"
+    type: "choice"
+    answers:
+    - answer:  "<code>s.lower()</code>"
+      correct: false
+    - answer:  "<code>s.toLowerCase()<code>"
+      correct: true
+    - answer:  "<code>s.toLower</code>"
+      correct: false
+    - answer:  "<code>s.toLower()</code>"
+      correct: false
+    - answer:  "<code>s.lowerCase()</code>"
+      correct: false
+
+  - question: |
+      Create an anonymous object literal (not assigned to a variable), with
+      three fields, <code>x</code>, <code>y</code> and <code>str</code>.
+      Initialize <code>x</code> to the integer 1.<br/>
+      Initialize <code>y</code> to the floating point number 2.0.<br/>
+      Initialize <code>str</code> to "Hello".
+    type: "jscode"
+    token: "@obj@"
+    # The code compares the result of the wrapper call against "answer".
+    wrapper: |
+      (function() {
+        var o = @obj@;
+        return (o.x === 1) && (o.y === 2.0) && (o.str === 'Hello');
+      })()
+    expectedAnswer: true
+    correctCode: |
+      { x:   1,
+        y:   2.0,
+        str: "Hello" }
+
+  - question: |
+      Write a function named <code>add</code> that adds two arguments.
+    type: "jscode"
+    token: "@add@"
+    # The code compares the result of the wrapper call against "answer".
+    wrapper: |
+      (function() {
+        @add@;
+        return add(10, 20);
+      })()
+    expectedAnswer: 30
+    correctCode: |
+      function(a, b) {
+        return a + b;
+      }
+
+  - question: >
+      If you refer to a variable that hasn't been declared, what will its
+      value be?
+    type: "choice"
+    answers:
+    - answer:  "<code>null</code>"
+      correct: false
+    - answer:  "<code>undefined</code>"
+      correct: true
+    - answer:  "<code>0</code>"
+      correct: false
+    - answer:  "<code>\"\"</code>"
+      correct: false
+
+  - question: >
+      In the following code, will the code within the <code>if</code> statement
+      execute?
+      <pre>var x = "";
+
+      if (x) {
+        callSomeFunction(x);
+      }
+      </pre>
+    type: "choice"
+    answers:
+    - answer:  "yes"
+      correct: false
+    - answer:  "no"
+      correct: true
+
+  - question: |
+      What will the following code print?
+      <pre>var i = 0;
+
+      if (i) i++;
+
+      console.log(i);</pre>
+    type: "choice"
+    answers:
+    - answer:  "Nothing."
+      correct: false
+    - answer:  "0"
+      correct: true
+    - answer:  "1"
+      correct: false
+
+  - question: |
+      <code>a++;</code> is the same as which of the following?
+    type: "choice"
+    answers:
+    - answer:  "<code>a = a + a;</code>"
+      correct: false
+    - answer:  "<code>a = a + 1;</code>"
+      correct: true
+    - answer:  "<code>a = a + 2;</code>"
+      correct: false
+
+  - question: "Is JavaScript case-sensitive or case-insensitive?"
+    type: "choice"
+    answers:
+    - answer:  "case-sensitive"
+      correct: true
+    - answer:  "case-insensitive"
+      correct: false
+
+  - question: |
+      What does the following function do?
+      <pre>function callMe(v) {
+        return v ? 1 : 2;
+      }</pre>
+    type: "choice"
+    answers:
+    - answer:  "It returns the value in <code>v</code>."
+      correct: false
+    - answer:  "It always returns 2."
+      correct: false
+    - answer:  "It returns 1 if <code>v</code> is truthy. Otherwise, it returns 2."
+      correct: true
+
+    question: |
+      What does the following function do?
+
+      <pre>function figureThisOut(str) {
+        return str.split('').reverse().join('');
+      }</pre>
+    type: "choice"
+    answers:
+    - answer:  "Returns the same string that was passed in."
+      correct: false
+    - answer:  "If a string is passed, returns a reversed copy."
+      correct: true
+    - answer:  "Splits the string into an array of characters and returns the array."
+      correct: false
+
+    question: |
+      What does the array contain after the following code finishes executing?
+
+      <pre>var a = [];
+      a.push('a');
+      a.push('b');
+      a.pop();
+      a.push('c');
+      a.push('d');
+      a.pop();
+      a.push('e');</pre>
+    type: "choice"
+    answers:
+    - answer:  "<code>['a', 'b', 'c', 'd', 'e']</code>"
+      correct: false
+    - answer:  "<code>['a', 'b', 'e']</code>"
+      correct: false
+    - answer:  "<code>['e']</code>"
+      correct: false
+    - answer:  "<code>['a', 'c', 'e']</code>"
+      correct: true
+
+  - question: |
+      Write a single JavaScript statement that will concatenate two strings,
+      one in variable <code>s1</code> and the other in variable
+      <code>s2</code>, storing the result in a third variable <code>s3</code>.
+      You must declare <code>s3</code>.
+    type: "jscode"
+    token: "@code@"
+    # The code compares the result of the wrapper call against "answer".
+    wrapper: |
+      (function() {
+        var s1 = "abc";
+        var s2 = "def";
+        @code@
+        return (s3 === "abcdef");
+      })()
+    expectedAnswer: true
+    correctCode: "var s3 = s1 + s2;"
+
+  - question: |
+      What result does this JavaScript statement yield?
+      <pre>3 + 2 + '1';</pre>
+    type: "choice"
+    answers:
+    - answer:  "<code>6</code>"
+      correct: false
+    - answer:  "<code>undefined</code>"
+      correct: false
+    - answer:  "<code>'51'</code>"
+      correct: true
+
+  - question: |
+      What does this statement do?
+      <pre>var x = parseInt("FF");</pre>
+    type: "choice"
+    answers:
+    - answer:  "Sets <code>x</code> to <code>undefined</code>."
+      correct: false
+    - answer:  "Sets <code>x</code> to 255."
+      correct: false
+    - answer:  "Sets <code>x</code> to <code>NaN</code>."
+      correct: true
+    - answer:  "Throws an exception."
+      correct: false
+
+  - question: |
+      Write a JavaScript function called <code>makeMultiplier()</code>.
+      It must take a single numeric argument representing a multiplier.
+      It must return <i>another</i> function that takes a numeric argument
+      and returns that number multiplied by the multiplier. Here's how it
+      might be used:
+      <pre>var multBy2 = makeMultiplier(2);
+      var x = multBy2(20);  // x will be 40
+      var y = multBy2(30);  // y will be 60
+      makeMultiplier(5)(10) // returns 50</pre>
+    type: "jscode"
+    token: "@code@"
+    # The code compares the result of the wrapper call against "answer".
+    wrapper: |
+      (function() {
+        @code@
+        var multBy3 = makeMultiplier(3);
+        var multBy10 = makeMultiplier(10);
+        var x = multBy3(9);
+        var y = multBy10(23);
+        return (x === 27) && (y == 230);
+      })()
+    expectedAnswer: true
+    correctCode: |
+      function makeMultiplier(multiplier) {
+        return function(n) {
+          return n * multiplier;
+        }
+      }
