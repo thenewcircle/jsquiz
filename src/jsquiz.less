@@ -49,6 +49,7 @@ body {
     padding-top:      30px;
     height:           100% !important;
     background-color: transparent;
+    margin-bottom:    0;
 
     #content-inner {
       // NOTE: For this height to "take", all parent elements' heights must
@@ -56,7 +57,9 @@ body {
       height:           100% !important;
       background-color: white;
       padding:          30px;
+      padding-bottom:   50px;
     }
+
     .incorrect {
       color: red;
     }
@@ -93,8 +96,22 @@ body {
         }
       }
 
-      .answer-status {
-        margin-top: 10px;
+      @answerButtonsHeight: 50px;
+      .answer-buttons {
+        height: @answerButtonsHeight;
+
+        .answer-status {
+          height:      @answerButtonsHeight;
+          line-height: @answerButtonsHeight;
+          margin-left: 20px;
+
+          &.correct {
+            color: green;
+          }
+          &.incorrect {
+            color: red;
+          }
+        }
       }
 
       .question {
@@ -172,24 +189,5 @@ body {
         }
       }
     }
-  }
-}
-
-.next-button {
-  float: right;
-}
-
-.buttonStyle {
-  padding:       10px 15px;
-  background:    @buttonBg;
-  color:         white;
-  border:        1px solid @buttonBg;
-  border-radius: 5px 5px 5px 5px;
-  font-size:     24px;
-
-  &:disabled {
-    background: @buttonDisabledBg;
-    color:      #eeeeee;
-    border:     1px solid @buttonDisabledBg;
   }
 }

@@ -84,7 +84,7 @@ questions:
     - answer:  "<code>var i = 10;</code>"
       correct: true
     - answer:  "<code>Integer i = 10;</code>"
-      correct: true
+      correct: false
     - answer:  "<code>i = 10;</code>"
       correct: false
 

@@ -377,12 +377,13 @@ app.controller('QuizCtrl',
       }
     }
 
-    $scope.showTryResult = (question) => {
+    $scope.showTryResult = (question, correct) => {
       console.log('showTryResult question=', question);
       console.log('showTryResult: testValue=', testedValue);
       if ((question.type === 'choice') ||
           (question.tries === 0) ||
           (question.recorded) ||
+          (question.isCorrect !== correct) ||
           (question.answer !== testedValue)) {
         return false;
       }
@@ -423,7 +424,7 @@ app.controller('QuizCtrl',
         stateService.redirectToStep(STEP_WRAP_UP);
       }
       else {
-        stateService.redirectToStep(STEP_QUESTIONS, questionIndex);
+        stateService.redirectToStep(STEP_QUESTIONS, questionIndex + 1);
       }
     }
   }
