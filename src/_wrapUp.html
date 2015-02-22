@@ -1,0 +1,77 @@
+
+<div id="wrap-up">
+  <div class="row">
+    <div class="col-md-10">
+      <div id="score" ng-show="score">
+        You got {{correctAnswers}} out of {{questions.length}} right,
+        for a score of {{score}}%.
+      </div>
+
+      <div class="admonition">
+        <div ng-show="score < 80 && score >= 70">
+          You <i>may</i> have trouble with this course.
+        </div>
+
+        <div ng-show="score < 70">
+          You <i>will</i> have trouble with this course.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="incorrect-answers" ng-show="incorrectAnswers">
+
+    <div class="row">
+      <div class="col-md-12 heading">
+        <hr/>
+        You answered the following
+                      <span ng-show="incorrectAnswers.length === 1">
+                        question
+                      </span>
+                      <span ng-show="incorrectAnswers.length > 1">
+                        {{incorrectAnswers.length}} questions
+                      </span>
+        incorrectly.
+      </div>
+    </div>
+
+    <div ng-repeat="a in incorrectAnswers">
+      <div class="incorrect-answer">
+        <div class="row">
+          <div class="col-md-2">
+            <strong>Question {{a.questionIndex + 1}}</strong>
+          </div>
+          <div class="col-md-10" ng-bind-html="a.question">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2 incorrect-answer-label">
+            You answered:
+          </div>
+          <div class="col-md-10">
+            <div ng-switch="a.questionType">
+              <div ng-switch-when="jscode">
+                <pre ng-bind-html="a.incorrectAnswer"></pre>
+              </div>
+              <div ng-switch-default
+                   ng-bind-html="a.incorrectAnswer"></div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2 correct-answer-label">
+            Correct answer:
+          </div>
+          <div class="col-md-10">
+            <div ng-switch="a.questionType">
+              <div ng-switch-when="jscode">
+                <pre ng-bind-html="a.correctAnswer"></pre>
+              </div>
+              <div ng-switch-default
+                   ng-bind-html="a.correctAnswer"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -43,8 +43,6 @@ gulp.task('scripts', function() {
     .pipe(sourcemaps.init())
     // Convert from ES6 to ES5
     .pipe(traceur())
-    // Automatically convert Angular injections to minifiable form.
-    .pipe(angularInjector())
     // Minify the file, rename it, write the source map and save the
     // minified file.
     .pipe(sourcemaps.write('.'))
@@ -64,6 +62,13 @@ gulp.task('css', function() {
 
 gulp.task('clean', function() {
   del(paths.build);
+});
+
+gulp.task('watch', function() {
+  gulp.watch(paths.scripts, ['scripts']);
+  gulp.watch(paths.questions, ['encode-questions']);
+  gulp.watch(paths.resources, ['resources']);
+  gulp.watch(paths.less, ['css']);
 });
 
 // ---------------------------------------------------------------------------

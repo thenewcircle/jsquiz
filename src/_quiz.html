@@ -1,0 +1,99 @@
+<div>
+
+  <div id="current-question" ng-show="currentQuestion">
+    <div class="row heading">
+      <div class="col-md-12">
+        <div class="question-number">
+          Question {{questionIndex + 1}}
+        </div>
+      </div>
+      <div class="heading">
+<!--
+        <div class="score col-md-3 pull-right">
+          Current score: {{correctAnswers}} / {{questions.length}}
+          ({{score}}%)
+        </div>
+-->
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-10">
+        <div class="question" ng-bind-html="currentQuestion.question">
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-10">
+        <div class="answer-block">
+          <div ng-show="currentQuestion.type === 'jscode'"
+               class="code-question">
+            <textarea ng-model="currentQuestion.answer"
+                      ng-readonly="currentQuestion.recorded"
+                      ng-class="{readonly: currentQuestion.recorded}"
+                      class="code-block"></textarea>
+            <button ng-click="testCodeAnswer(currentQuestion)"
+                    ng-disabled="currentQuestion.triesLeft() === 0"
+                    class="try-button btn btn-primary btn-lg">
+              Test Your Answer
+              (<span ng-bind="currentQuestion.triesLeft()"></span>
+              tries left)
+            </button>
+            <!-- Don't show if the user hasn't tried yet. -->
+            <div ng-show="showTryResult(currentQuestion)" class="try-result">
+              <span class="incorrect" ng-hide="currentQuestion.isCorrect">
+                Incorrect.
+              </span>
+              <span class="correct" ng-show="currentQuestion.isCorrect">
+                Correct.
+              </span>
+            </div>
+          </div>
+
+          <div ng-show="currentQuestion.type === 'choice'"
+               class="multiple-choice-question">
+            <div class="answers">
+              <div ng-repeat="a in currentQuestion.answers">
+                <input type="radio" ng-model="currentQuestion.answer"
+                       value="{{$index}}" class="css-checkbox"
+                       id="radio-{{$index}}"
+                       ng-disabled="currentQuestion.recorded">
+                <label for="radio-{{$index}}" class="css-label"
+                       ng-bind-html="a.answer"></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="answer-buttons">
+        <div class="col-md-2">
+          <button ng-click="recordAnswer()"
+                  ng-disabled="!currentQuestion.answer"
+                  ng-show="!currentQuestion.recorded"
+                  class="btn btn-success btn-lg">
+            Submit
+          </button>
+          <div ng-show="currentQuestion.recorded">
+            <button ng-click="next()"
+                    ng-disabled="!currentQuestion.answer"
+                    class="btn btn-primary btn-lg">
+              Next
+            </button>
+            <div class="answer-status">
+              <div ng-show="currentQuestion.correct" class="correct">
+                Correct!
+              </div>
+              <div ng-show="!currentQuestion.correct" class="incorrect">
+                Incorrect
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
