@@ -1,10 +1,14 @@
-<div id="jsquiz-intro">
+<div id="intro">
   <div class="row">
-    <div class="col-md-10">
-      <p>
-        This {{totalQuestions}}-question quiz tests your JavaScript proficiency.
-        <ng-include src="'_scoreExplanation.html'"></ng-include>
-      </p>
+    <div class="col-md-2 col-md-offset-10">
+      <div class="total-questions">
+        {{totalQuestions}} questions
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-9 col-md-offset-1">
+      <p ng-bind-html="intro"></p>
 
       <p>
         Each question will appear on its own screen. Answer the
@@ -36,7 +40,9 @@
         button to submit the answer.
       </p>
     </div>
-    <div class="col-md-2">
+  </div>
+  <div class="row">
+    <div class="col-md-2 col-md-offset-10">
       <div class="next-button">
         <button ng-click="gotoFirstQuestion()" class="btn btn-primary btn-lg">
           Continue...

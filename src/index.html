@@ -1,7 +1,7 @@
 <!doctype html>
-<html>
-  <head>
-    <title>NewCircle JavaScript Proficiency Quiz</title>
+<html ng-app="JsQuiz">
+  <head ng-controller="HeadCtrl">
+    <title>{{title}}</title>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular-cookies.min.js"></script>
@@ -15,10 +15,10 @@
     <script src="https://google.github.io/traceur-compiler/bin/traceur.js"></script>
     <script src="quiz.js"></script>
     <link rel="stylesheet" media="screen" href="checkbox-radio.css"/>
-    <link rel="stylesheet" media="screen" href="jsquiz.css"/>
+    <link rel="stylesheet" media="screen" href="quiz.css"/>
   </head>
 
-  <body ng-app="JsQuiz">
+  <body ng-controller="BodyCtrl">
 
     <div id="outer" class="container-fluid">
       <div id="header">
@@ -30,7 +30,7 @@
           </div>
           <div class="col-md-6"></div>
           <div class="col-md-5">
-            <h1>JavaScript Proficiency Quiz</h1>
+            <h1>{{heading}}</h1>
           </div>
         </div>
       </div>

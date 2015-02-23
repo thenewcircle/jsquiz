@@ -1,8 +1,20 @@
+/*
+ ------------------------------------------------------------------------
+ AngularJS logic for the quiz.
+
+ NOTE This file uses some features of ECMAScript 6 (ES6) and must be
+ transpiled by the Google traceur preprocessor before being deployed to
+ a browser.
+ ------------------------------------------------------------------------
+ */
+
 var app = angular.module('JsQuiz', ['ngSanitize', 'ngCookies', 'ngRoute']);
 
 // ------------------------------------------------------------------------
 // Constants
 // ------------------------------------------------------------------------
+
+var DEFAULT_TITLE  = "Quiz";
 
 var STEP_QUESTIONS = 'questions';
 var STEP_INTRO     = 'intro';
@@ -31,7 +43,7 @@ app.config(function($routeProvider) {
     controller:  "IntroCtrl",
     step:        STEP_INTRO,
     resolve:     {
-      "questions": (questionsService) => { return questionsService(); }
+      "quizData": (quizDataService) => { return quizDataService(); }
     }
   })
   .when("/quiz/:num", {
@@ -39,7 +51,7 @@ app.config(function($routeProvider) {
     controller:  "QuizCtrl",
     step:        STEP_QUESTIONS,
     resolve:     {
-      "questions": (questionsService) => { return questionsService(); }
+      "quizData": (quizDataService) => { return quizDataService(); }
       }
   })
   .when("/wrap-up", {
@@ -47,7 +59,7 @@ app.config(function($routeProvider) {
     controller:  "WrapUpCtrl",
     step:        STEP_WRAP_UP,
     resolve:     {
-    "questions": (questionsService) => { return questionsService(); }
+    "quizData": (quizDataService) => { return quizDataService(); }
     }
   })
   .when("/reset", {
@@ -212,9 +224,11 @@ app.factory('checkState', function(stateService, $location) {
   }
 });
 
-// Intended to be used by routing. Loads questions (once) and makes them
-// available as a function returning a promise.
-app.factory('questionsService', function($http, $q, logging) {
+// Intended to be used by routing. Loads the quiz data (once) and makes it
+// available as a function returning a promise. The routing logic will then
+// take the result of that promise and inject it into any controller that
+// asks for it.
+app.factory('quizDataService', function($http, $q, logging) {
 
   var log = logging.logger('questions');
 
@@ -276,12 +290,13 @@ app.factory('questionsService', function($http, $q, logging) {
 
     log.debug("Loading questions from server.");
     $http
-      .get("questions.base64")
+      .get("quiz.dat")
       .success((data) => {
         let decodedData = JSON.parse(window.atob(data));
         let questions = validateAndProcessQuestions(decodedData.questions);
         log.debug(`Loaded ${questions.length} questions.`);
-        deferred.resolve(questions);
+        decodedData.questions = questions;
+        deferred.resolve(decodedData);
       })
       .error((data) => {
         log.error("Failed to load questions.");
@@ -327,13 +342,40 @@ app.factory('logging', function() {
 // Controllers
 // ------------------------------------------------------------------------
 
+// The head controller controls the substitutions in the <head> element
+// (mostly just the <title> element). It must access the quizData service
+// directly, rather than via the $routeProvider magic, because there's no
+// no URL associated with this controller.
+app.controller('HeadCtrl', function($scope, quizDataService) {
+  // The data service is callable directly as a function. It returns a promise,
+  // so we have to wait for the promise to complete.
+
+  quizDataService().then(function(quizData) {
+    $scope.title = quizData.title || DEFAULT_TITLE;
+  })
+});
+
+// The body controller is an outer controller. It exists primarily to control
+// the substitutions in the <body> element that aren't subject to other
+// controllers. Like the HeadCtrl, BodyCtrl must access the quizData service
+// directly, rather than via the $routeProvider magic, because there's no
+// no URL associated with this controller.
+app.controller('BodyCtrl', function($scope, quizDataService) {
+  // The data service is callable directly as a function. It returns a promise,
+  // so we have to wait for the promise to complete.
+
+  quizDataService().then(function(quizData) {
+    $scope.heading = quizData.title || DEFAULT_TITLE;
+  });
+});
+
 app.controller('ResetCtrl', function(stateService, $location) {
   stateService.resetState();
   $location.path('/');
 });
 
 app.controller('IntroCtrl',
-  function($scope, stateService, checkState, logging, questions) {
+  function($scope, stateService, checkState, logging, quizData) {
     if (checkState()) return;
 
     let log = logging.logger('IntroCtrl');
@@ -344,15 +386,21 @@ app.controller('IntroCtrl',
       stateService.redirectToStep(STEP_QUESTIONS, 0);
     }
 
+    let questions = quizData.questions;
     $scope.totalQuestions = questions.length;
+    $scope.intro = quizData.intro;
   }
 );
 
 app.controller('WrapUpCtrl',
-  function($scope, stateService, checkState, questions, logging) {
+  function($scope, stateService, checkState, quizData, logging) {
     if (checkState()) return checkState();
 
     let log = logging.logger('WrapUpCtrl');
+
+    let questions = quizData.questions;
+
+    $scope.wrapUp = quizData.wrapUp;
 
     log.debug("WrapUpCtrl: questions=", questions);
     let answers = stateService.getState().answers;
@@ -401,12 +449,13 @@ app.controller('WrapUpCtrl',
 );
 
 app.controller('QuizCtrl',
-  function($scope, stateService, checkState, questions, $routeParams, logging) {
+  function($scope, stateService, checkState, quizData, $routeParams, logging) {
 
     if (checkState()) return checkState();
 
     let log = logging.logger('QuizCtrl');
 
+    let questions      = quizData.questions;
     let questionNumber = $routeParams.num;
     let questionIndex  = questionNumber - 1;
     let testedValue    = null;

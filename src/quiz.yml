@@ -1,4 +1,49 @@
-# YAML question input. There are two kinds of questions, each documented below.
+# YAML question input. Individual fields are documented below.
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# Quiz title
+#
+# This string will appear in the <title> element and as the main header on each
+# page. Embedded HTML is NOT honored.
+# ----------------------------------------------------------------------------
+
+title: "JavaScript Proficiency Quiz"
+
+# ----------------------------------------------------------------------------
+# Intro
+#
+# This paragraph will appear at the top of the introduction screen, just before
+# the description of the quiz navigation controls. Embedded HTML is permitted.
+# ----------------------------------------------------------------------------
+
+intro: |
+  This quiz tests your JavaScript proficiency. A score of less than 70% means
+  you might have some trouble with the AngularJS course.
+
+# ----------------------------------------------------------------------------
+# Wrap-up
+#
+# This paragraph will appear on the wrap-up screen, right after the score.
+# the description of the quiz navigation controls. Embedded HTML is permitted.
+
+wrapUp: |
+  Reminder: If your score is less than 70%, you might have some trouble with
+  this course.
+
+# ----------------------------------------------------------------------------
+# Questions
+# ----------------------------------------------------------------------------
+
+# There are two kinds of questions, each documented below. All questions have
+# these two required fields:
+#
+# question: The text of the question. Embedded HTML is permitted. Multiline
+#           values should use the YAML ">" (folded) or "|" (literal) style.
+#           See http://michael.f1337.us/2010/03/30/482836205/
+# type:     The question type, either "choice" (multiple choice) or
+#           "jscode" (for "JavaScript code"). Each type is explained
+#           in detail, below.
 #
 # ---------------
 # type = "choice"
@@ -6,13 +51,10 @@
 #
 # This is a multiple choice question. The following fields are required:
 #
-# question: The text of the question. Embedded HTML is permitted. Multiline
-#           values should use the YAML ">" (folded) or "|" (literal) style.
-#           See http://michael.f1337.us/2010/03/30/482836205/
-# type:     "choice"
 # answers:  A list of answers. Each answer must have two fields:
 #
-#           answer: The answer (choice) to display to the user.
+#           answer:  The answer (choice) to display to the user. Embedded
+#                    HTML is permitted.
 #           correct: true if it's the correct answer; false otherwise.
 #
 # ---------------
@@ -22,10 +64,6 @@
 # This is a question that requires the student to enter some Javascript code
 # to be evaluated. The following fields are required.
 #
-# question:       The text of the question. Embedded HTML is permitted. Multiline
-#                 values should use the YAML ">" (folded) or "|" (literal) style.
-#                 See http://michael.f1337.us/2010/03/30/482836205/
-# type:           "jscode"
 # wrapper:        Wrapper JavaScript code. The user's code will be inserted
 #                 into the wrapper, replacing a special token. (You need to
 #                 include the token in the wrapper *AND* specify the token in

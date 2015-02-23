@@ -16,8 +16,8 @@ var paths = {
   scripts:      'src/*.js',
   resources:    ['src/*.html', 'src/*.png'],
   less:         'src/*.less',
-  questions:    'src/questions.yml',
-  questionsOut: 'questions.base64',
+  questions:    'src/quiz.yml',
+  questionsOut: 'quiz.dat',
   build:        'dist'
 }
 

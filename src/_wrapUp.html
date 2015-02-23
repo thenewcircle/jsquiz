@@ -8,9 +8,7 @@
           for a score of {{score}}%.
         </div>
 
-        <div>
-          Reminder: <ng-include src="'_scoreExplanation.html'"></ng-include>
-        </div>
+        <div ng-bind-html="wrapUp"></div>
       </div>
 
       <div class="admonition">

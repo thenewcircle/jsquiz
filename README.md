@@ -28,3 +28,20 @@ Everything will be built and copied into the `dist` subdirectory.
 
 Deploy all the files in the `dist` directory, and tell the students to
 point their browsers at the `index.html` file.
+
+## Writing or Modifying the Quiz
+
+The quiz engine, itself, is intended to be generic. Unless you're modifying
+the look-and-feel of the quiz, you should not need to change the CSS (in
+`quiz.less`), the HTML files, or the JavaScript (in `quiz.js`).
+
+The contents of the quiz, itself, are entirely contained within the `quiz.yml`
+in the `src` directory. This YAML file contains introductory front matter,
+wrap-up (final page) text, and the list of questions (with answers).
+
+The Gulp logic converts the YAML to JSON; then, it encodes it as Base64,
+writing the output to `quiz.dat`. This approach provides a simple anti-cheating
+roadblock. (A developer who's smart enough to download `quiz.dat`, figure out
+that it's Base64, and decode it is probably smart enough to do reasonably
+well on the quiz.)
+
