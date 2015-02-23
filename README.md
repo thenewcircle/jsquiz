@@ -39,6 +39,9 @@ The contents of the quiz, itself, are entirely contained within the `quiz.yml`
 in the `src` directory. This YAML file contains introductory front matter,
 wrap-up (final page) text, and the list of questions (with answers).
 
+The JavaScript Quiz `quiz.yml` file is extensively documented. Consult the
+documentation before modifying the quiz data.
+
 The Gulp logic converts the YAML to JSON; then, it encodes it as Base64,
 writing the output to `quiz.dat`. This approach provides a simple anti-cheating
 roadblock. (A developer who's smart enough to download `quiz.dat`, figure out
