@@ -27,4 +27,4 @@ Everything will be built and copied into the `dist` subdirectory.
 ## Deploying
 
 Deploy all the files in the `dist` directory, and tell the students to
-point their browsers at the `jsquiz.html` file.
+point their browsers at the `index.html` file.
