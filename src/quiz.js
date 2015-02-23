@@ -7,82 +7,24 @@ var app = angular.module('JsQuiz', ['ngSanitize', 'ngCookies', 'ngRoute']);
 var STEP_QUESTIONS = 'questions';
 var STEP_INTRO     = 'intro';
 var STEP_WRAP_UP   = 'wrap-up';
+var MAX_CODE_TRIES = 3;
+
+// Change this to modify the logging level.
+var LOG_LEVEL      = log4javascript.Level.DEBUG;
+
+// Aliases
+var LOG_TRACE      = log4javascript.Level.TRACE;
+var LOG_DEBUG      = log4javascript.Level.DEBUG;
+var LOG_INFO       = log4javascript.Level.INFO;
+var LOG_WARN       = log4javascript.Level.WARN;
+var LOG_ERROR      = log4javascript.Level.ERROR;
+var LOG_FATAL      = log4javascript.Level.FATAL;
 
 // ------------------------------------------------------------------------
 // Configuration
 // ------------------------------------------------------------------------
 
 app.config(function($routeProvider) {
-
-  function validateAndProcessQuestions(questions) {
-
-    function validateRequiredKeys(question, index, keys) {
-      for (let k of keys) {
-        if (! question[k])
-          throw new Error(`Missing required "${k}" key in question ${index}.`);
-      }
-    }
-
-    function validateAndAugmentCodeQuestion(q) {
-      validateRequiredKeys(q, i, ['question', 'wrapper', 'token',
-                                  'correctCode', 'expectedAnswer']);
-
-      q.tries = 0;
-      q.maxTries = 3;
-      q.triesLeft = function() {
-        return q.maxTries - q.tries;
-      };
-
-      return q;
-    }
-
-    function validateAndAugmentChoiceQuestion(q) {
-      validateRequiredKeys(q, i, ['question', 'answers']);
-      for (let a of q.answers) {
-        if (! (a.answer && (typeof a.correct === 'boolean'))) {
-          throw new Error(`Malformed answers section in question ${i}.`);
-        }
-      }
-
-      return q;
-    }
-
-    for (let i = 0; i < questions.length; i++) {
-      let q = questions[i];
-      if (! q.type) {
-        throw new Error(`Missing "type" field in question ${i}.`);
-      }
-
-      switch (q.type) {
-        case 'jscode':
-          validateAndAugmentCodeQuestion(q);
-          break;
-
-        case 'choice':
-          validateAndAugmentChoiceQuestion(q);
-          break;
-      }
-    }
-
-    return questions;
-  }
-
-  function loadQuestions($http, $q) {
-    let deferred = $q.defer();
-
-    $http
-      .get("questions.base64")
-      .success((data) => {
-        let decodedData = JSON.parse(window.atob(data));
-        let questions = validateAndProcessQuestions(decodedData.questions);
-        deferred.resolve(questions);
-      })
-      .error((data) => {
-        deferred.reject("Failed to load questions.");
-      });
-
-    return deferred.promise;
-  }
 
   $routeProvider.when("/intro", {
     templateUrl: "_intro.html",
@@ -94,13 +36,16 @@ app.config(function($routeProvider) {
     controller:  "QuizCtrl",
     step:        STEP_QUESTIONS,
     resolve:     {
-      "questions": ($http, $q) => { return loadQuestions($http, $q); }
+      "questions": (questions) => { return questions(); }
       }
   })
   .when("/wrap-up", {
     templateUrl: "_wrapUp.html",
     controller:  "WrapUpCtrl",
-    step:        STEP_WRAP_UP
+    step:        STEP_WRAP_UP,
+    resolve:     {
+    "questions": (questions) => { return questions(); }
+    }
   })
   .when("/reset", {
     controller: "ResetCtrl",
@@ -116,6 +61,7 @@ app.config(function($routeProvider) {
 // Services
 // ------------------------------------------------------------------------
 
+// Manage the current state.
 app.factory('stateService', function($cookies, $location, $route) {
 
   var state           = {};
@@ -125,6 +71,7 @@ app.factory('stateService', function($cookies, $location, $route) {
     state = {
       step:           STEP_INTRO,
       questionIndex:  null,
+      tries:          0, // only applicable to certain kinds of questions
       answers:        {}
     }
   }
@@ -183,9 +130,13 @@ app.factory('stateService', function($cookies, $location, $route) {
     saveAnswer: (answer) => {
       let index = answer.questionIndex;
       state.answers[`q${index}`] = answer;
-      console.log("Recorded answer ", answer, " for index ", index);
       saveState(state, index);
-      console.log("state is now", $cookies.savedState);
+    },
+
+    saveTries: (tries) => {
+      state.tries = tries;
+      saveState(state, state.questionIndex);
+      console.log(`Saved tries ${tries}`, state);
     },
 
     getAnswer: (questionIndex) => {
@@ -220,6 +171,7 @@ app.factory('stateService', function($cookies, $location, $route) {
   }
 });
 
+// Check the current state, redirecting if it isn't correct.
 app.factory('checkState', function(stateService, $location) {
   return function() {
     let state = stateService.getState();
@@ -257,6 +209,112 @@ app.factory('checkState', function(stateService, $location) {
   }
 });
 
+// Intended to be used by routing. Loads questions (once) and makes them
+// available as a function returning a promise.
+app.factory('questions', function($http, $q) {
+
+  function validateAndProcessQuestions(questions) {
+
+    function validateRequiredKeys(question, index, keys) {
+      for (let k of keys) {
+        if (! question[k])
+          throw new Error(`Missing required "${k}" key in question ${index}.`);
+      }
+    }
+
+    function validateAndAugmentCodeQuestion(q) {
+      validateRequiredKeys(q, i, ['question', 'wrapper', 'token',
+        'correctCode', 'expectedAnswer']);
+
+      q.tries = 0;
+      q.maxTries = MAX_CODE_TRIES;
+      q.triesLeft = function() {
+        return q.maxTries - q.tries;
+      };
+
+      return q;
+    }
+
+    function validateAndAugmentChoiceQuestion(q) {
+      validateRequiredKeys(q, i, ['question', 'answers']);
+      for (let a of q.answers) {
+        if (! (a.answer && (typeof a.correct === 'boolean'))) {
+          throw new Error(`Malformed answers section in question ${i}.`);
+        }
+      }
+
+      return q;
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+      let q = questions[i];
+      if (! q.type) {
+        throw new Error(`Missing "type" field in question ${i}.`);
+      }
+
+      switch (q.type) {
+        case 'jscode':
+          validateAndAugmentCodeQuestion(q);
+          break;
+
+        case 'choice':
+          validateAndAugmentChoiceQuestion(q);
+          break;
+      }
+    }
+
+    return questions;
+  }
+
+  function loadQuestions() {
+    let deferred = $q.defer();
+
+    $http
+      .get("questions.base64")
+      .success((data) => {
+                 let decodedData = JSON.parse(window.atob(data));
+                 let questions = validateAndProcessQuestions(decodedData.questions);
+                 deferred.resolve(questions);
+               })
+      .error((data) => {
+               deferred.reject("Failed to load questions.");
+             });
+
+    return deferred.promise;
+  }
+
+  var promise = loadQuestions();
+
+  return function() {
+    return promise;
+  }
+});
+
+// Logging.
+app.factory('logging', function() {
+
+  var log      = log4javascript.getLogger();
+  var appender = new log4javascript.BrowserConsoleAppender();
+
+  log4javascript.setShowStackTraces(true);
+
+  appender.setLayout(
+    new log4javascript.PatternLayout("%d{HH:mm:ss} (%-5p) %c: %m")
+  );
+  log.addAppender(appender);
+
+  appender.setThreshold(LOG_LEVEL);
+
+  return {
+    logger: (name, level=LOG_DEBUG) => {
+      let logger = log4javascript.getLogger(name);
+      logger.addAppender(appender);
+      logger.setLevel(level);
+      return logger;
+    }
+  }
+});
+
 // ------------------------------------------------------------------------
 // Controllers
 // ------------------------------------------------------------------------
@@ -267,10 +325,11 @@ app.controller('ResetCtrl', function(stateService, $location) {
 });
 
 app.controller('IntroCtrl',
-  function($scope, $location, stateService, checkState) {
+  function($scope, stateService, checkState, logging) {
     if (checkState()) return;
 
-    console.log("After checkState()");
+    let log = logging.logger('IntroCtrl');
+
     stateService.saveStep(STEP_INTRO);
 
     $scope.gotoFirstQuestion = () => {
@@ -280,23 +339,33 @@ app.controller('IntroCtrl',
 );
 
 app.controller('WrapUpCtrl',
-  function($scope, $location, stateService, checkState) {
+  function($scope, stateService, checkState, questions, logging) {
     if (checkState()) return checkState();
 
+    let log = logging.logger('WrapUpCtrl');
+
+    log.debug("WrapUpCtrl: questions=", questions);
     let answers = stateService.getState().answers;
-    console.log("WrapUpCtrl: answers=", answers);
+    log.debug("WrapUpCtrl: answers=", answers);
 
     // Filter the list of incorrect answers and augment it with information
     // more suitable to the view.
 
     let incorrectAnswers = _.filter(answers, (a) => { return !a.correct; });
+    log.debug("WrapUpCtrl: incorrectAnswers", incorrectAnswers);
+    let totalAnswers = _.keys(answers).length;
+    $scope.totalCorrect = totalAnswers - incorrectAnswers.length;
+    log.debug('WrapUpCtrl: correct', $scope.totalCorrect);
+    $scope.score = ($scope.totalCorrect * 100) / totalAnswers;
+    log.debug('WrapUpCtrl: score', $scope.score);
+
     if (incorrectAnswers.length == 0)
       $scope.incorrectAnswers = null;
 
     else {
       $scope.incorrectAnswers = _.filter(incorrectAnswers, function(a) {
         let i = a.questionIndex;
-        let question = $scope.questions[i];
+        let question = questions[i];
         a.question = question.question;
         a.questionType = question.type;
 
@@ -321,9 +390,11 @@ app.controller('WrapUpCtrl',
 );
 
 app.controller('QuizCtrl',
-  function($scope, $location, stateService, checkState, questions, $routeParams) {
+  function($scope, stateService, checkState, questions, $routeParams, logging) {
 
     if (checkState()) return checkState();
+
+    let log = logging.logger('QuizCtrl');
 
     let questionNumber = $routeParams.num;
     let questionIndex  = questionNumber - 1;
@@ -338,15 +409,19 @@ app.controller('QuizCtrl',
     $scope.questionIndex   = questionIndex;
 
     let answer = stateService.getAnswer(questionIndex);
-    console.log(`Answer for question ${questionIndex+1} = `, answer);
 
     if (answer) {
       // Restore the settings, so they're reflected in the view. (This might
       // be a reload.)
-      $scope.currentQuestion.recorded = true;
-      $scope.currentQuestion.correct  = answer.correct;
-      $scope.currentQuestion.answer   = answer.answer;
+      $scope.currentQuestion.recorded  = true;
+      $scope.currentQuestion.isCorrect = answer.correct;
+      $scope.currentQuestion.answer    = answer.answer;
     }
+
+    if ($scope.currentQuestion.type === 'jscode')
+      $scope.currentQuestion.tries = state.tries || 0;
+
+    log.debug("currentQuestion", $scope.currentQuestion);
 
     function multipleChoiceIsCorrect(question) {
       // The answer to a multiple choice question is the index of the choice.
@@ -355,15 +430,15 @@ app.controller('QuizCtrl',
     }
 
     function codeAnswerIsCorrect(question) {
-      console.log(`answer is: ${question.answer}`);
+      log.debug("answer is: ", question.answer);
       let code = question.wrapper.replace(question.token, question.answer);
-      console.log(`Evaluating: ${code}`);
+      log.debug("Evaluating: ", code);
       try {
         let result = eval(code);
         return result === eval(question.expectedAnswer);
       }
       catch (e) {
-        console.log(`Eval of question "${question.question}" failed: ${e.message}`);
+        log.debug("Eval of question ", question.question, " failed.", e);
         return false;
       }
     }
@@ -372,23 +447,37 @@ app.controller('QuizCtrl',
     $scope.testCodeAnswer = (question) => {
       if (question.tries < question.maxTries) {
         question.tries++;
+        stateService.saveTries(question.tries);
         question.isCorrect = codeAnswerIsCorrect(question);
         testedValue = question.answer;
       }
     }
 
-    $scope.showTryResult = (question, correct) => {
-      console.log('showTryResult question=', question);
-      console.log('showTryResult: testValue=', testedValue);
+    let showTryResult = (question, correct) => {
       if ((question.type === 'choice') ||
-          (question.tries === 0) ||
-          (question.recorded) ||
-          (question.isCorrect !== correct) ||
-          (question.answer !== testedValue)) {
+          ((question.tries === 0) && (!question.recorded)) ||
+          (question.isCorrect !== correct)) {
         return false;
       }
 
       return true;
+    }
+
+    let showAnswerStatus = (question, correct) => {
+      switch (question.type) {
+        case 'jscode':
+          return showTryResult(question, correct);
+        case 'choice':
+          return question.recorded && (question.isCorrect === correct);
+      }
+    }
+
+    $scope.showIncorrectAnswerStatus = () => {
+      return showAnswerStatus($scope.currentQuestion, false);
+    }
+
+    $scope.showCorrectAnswerStatus = () => {
+      return showAnswerStatus($scope.currentQuestion, true);
     }
 
     // Record an answer.
@@ -414,16 +503,17 @@ app.controller('QuizCtrl',
       stateService.saveAnswer(answer);
 
       $scope.currentQuestion.recorded = true;
-      $scope.currentQuestion.correct = correct;
+      $scope.currentQuestion.isCorrect = correct;
     }
 
     $scope.next = () => {
-      console.log(`next. questionIndex=${questionIndex}, total=${questions.length}`);
+      log.debug(`next: questionIndex=${questionIndex}, total=${questions.length}`);
       if (questionIndex >= questions.length) {
         // Last question. Over to wrap-up.
         stateService.redirectToStep(STEP_WRAP_UP);
       }
       else {
+        stateService.saveTries(0);
         stateService.redirectToStep(STEP_QUESTIONS, questionIndex + 1);
       }
     }

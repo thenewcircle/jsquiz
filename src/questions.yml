@@ -160,7 +160,7 @@ questions:
 
   - question: |
       Create an anonymous object literal (not assigned to a variable), with
-      three fields, <code>x</code>, <code>y</code> and <code>str</code>.
+      three fields, <code>x</code>, <code>y</code> and <code>str</code>.<br/>
       Initialize <code>x</code> to the integer 1.<br/>
       Initialize <code>y</code> to the floating point number 2.0.<br/>
       Initialize <code>str</code> to "Hello".
@@ -355,11 +355,12 @@ questions:
       correct: false
 
   - question: |
-      Write a JavaScript function called <code>makeMultiplier()</code>.
-      It must take a single numeric argument representing a multiplier.
-      It must return <i>another</i> function that takes a numeric argument
-      and returns that number multiplied by the multiplier. Here's how it
-      might be used:
+      AngularJS makes heavy use of closures and functions that return
+      other functions. So, write a JavaScript function called
+      <code>makeMultiplier()</code>. This function must take a single numeric
+      argument representing a multiplier. It must return <i>another</i>
+      function that takes a numeric argument and returns that number
+      multiplied by the multiplier. Here's how it might be used:
       <pre>var multBy2 = makeMultiplier(2);
       var x = multBy2(20);  // x will be 40
       var y = multBy2(30);  // y will be 60

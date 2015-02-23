@@ -10,7 +10,7 @@
       <div class="heading">
 <!--
         <div class="score col-md-3 pull-right">
-          Current score: {{correctAnswers}} / {{questions.length}}
+          Current score: {{totalCorrect}} / {{questions.length}}
           ({{score}}%)
         </div>
 -->
@@ -83,11 +83,11 @@
               </button>
             </div>
             <div class="btn-group">
-              <div ng-show="currentQuestion.correct || showTryResult(currentQuestion, true)"
+              <div ng-show="showCorrectAnswerStatus()"
                    class="answer-status correct">
                 Correct!
               </div>
-              <div ng-show="!currentQuestion.correct || showTryResult(currentQuestion, false)"
+              <div ng-show="showIncorrectAnswerStatus()"
                    class="answer-status incorrect">
                 Incorrect
               </div>

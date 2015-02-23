@@ -2,9 +2,15 @@
 <div id="wrap-up">
   <div class="row">
     <div class="col-md-10">
-      <div id="score" ng-show="score">
-        You got {{correctAnswers}} out of {{questions.length}} right,
-        for a score of {{score}}%.
+      <div id="score-summary" ng-show="score">
+        <div id="score">
+          You got {{totalCorrect}} out of {{questions.length}} right,
+          for a score of {{score}}%.
+        </div>
+
+        <div>
+          Reminder: <ng-include src="'_scoreExplanation.html'"></ng-include>
+        </div>
       </div>
 
       <div class="admonition">
