@@ -29,14 +29,17 @@ app.config(function($routeProvider) {
   $routeProvider.when("/intro", {
     templateUrl: "_intro.html",
     controller:  "IntroCtrl",
-    step:        STEP_INTRO
+    step:        STEP_INTRO,
+    resolve:     {
+      "questions": (questionsService) => { return questionsService(); }
+    }
   })
   .when("/quiz/:num", {
     templateUrl: "_quiz.html",
     controller:  "QuizCtrl",
     step:        STEP_QUESTIONS,
     resolve:     {
-      "questions": (questions) => { return questions(); }
+      "questions": (questionsService) => { return questionsService(); }
       }
   })
   .when("/wrap-up", {
@@ -44,7 +47,7 @@ app.config(function($routeProvider) {
     controller:  "WrapUpCtrl",
     step:        STEP_WRAP_UP,
     resolve:     {
-    "questions": (questions) => { return questions(); }
+    "questions": (questionsService) => { return questionsService(); }
     }
   })
   .when("/reset", {
@@ -211,7 +214,9 @@ app.factory('checkState', function(stateService, $location) {
 
 // Intended to be used by routing. Loads questions (once) and makes them
 // available as a function returning a promise.
-app.factory('questions', function($http, $q) {
+app.factory('questionsService', function($http, $q, logging) {
+
+  var log = logging.logger('questions');
 
   function validateAndProcessQuestions(questions) {
 
@@ -269,16 +274,19 @@ app.factory('questions', function($http, $q) {
   function loadQuestions() {
     let deferred = $q.defer();
 
+    log.debug("Loading questions from server.");
     $http
       .get("questions.base64")
       .success((data) => {
-                 let decodedData = JSON.parse(window.atob(data));
-                 let questions = validateAndProcessQuestions(decodedData.questions);
-                 deferred.resolve(questions);
-               })
+        let decodedData = JSON.parse(window.atob(data));
+        let questions = validateAndProcessQuestions(decodedData.questions);
+        log.debug(`Loaded ${questions.length} questions.`);
+        deferred.resolve(questions);
+      })
       .error((data) => {
-               deferred.reject("Failed to load questions.");
-             });
+        log.error("Failed to load questions.");
+        deferred.reject("Failed to load questions.");
+      });
 
     return deferred.promise;
   }
@@ -325,7 +333,7 @@ app.controller('ResetCtrl', function(stateService, $location) {
 });
 
 app.controller('IntroCtrl',
-  function($scope, stateService, checkState, logging) {
+  function($scope, stateService, checkState, logging, questions) {
     if (checkState()) return;
 
     let log = logging.logger('IntroCtrl');
@@ -335,6 +343,8 @@ app.controller('IntroCtrl',
     $scope.gotoFirstQuestion = () => {
       stateService.redirectToStep(STEP_QUESTIONS, 0);
     }
+
+    $scope.totalQuestions = questions.length;
   }
 );
 
@@ -356,8 +366,9 @@ app.controller('WrapUpCtrl',
     let totalAnswers = _.keys(answers).length;
     $scope.totalCorrect = totalAnswers - incorrectAnswers.length;
     log.debug('WrapUpCtrl: correct', $scope.totalCorrect);
-    $scope.score = ($scope.totalCorrect * 100) / totalAnswers;
+    $scope.score = Math.round(($scope.totalCorrect * 100) / totalAnswers);
     log.debug('WrapUpCtrl: score', $scope.score);
+    $scope.totalQuestions = questions.length;
 
     if (incorrectAnswers.length == 0)
       $scope.incorrectAnswers = null;

@@ -75,19 +75,6 @@ questions:
     - answer:  "<code>s = \"Hello\";</code>"
       correct: false
 
-  - question: |
-      How do you create a variable <code>i</code> that is set to the integer 10?
-    type: "choice"
-    answers:
-    - answer:  "<code>int i = 10;</code>"
-      correct: false
-    - answer:  "<code>var i = 10;</code>"
-      correct: true
-    - answer:  "<code>Integer i = 10;</code>"
-      correct: false
-    - answer:  "<code>i = 10;</code>"
-      correct: false
-
   - question: "What is the keyword to define a function?"
     type: "choice"
     answers:
@@ -111,21 +98,6 @@ questions:
       correct: false
     - answer:  "<code>begin/rescue</code>"
       correct: false
-    - answer:  "None of the above"
-      correct: false
-
-  - question: |
-      Using jQuery, how can you select an HTML element with ID "heading"?
-    type: "choice"
-    answers:
-    - answer:  "<code>$('heading')</code>"
-      correct: false
-    - answer:  "<code>$('id=heading')</code>"
-      correct: false
-    - answer:  "<code>$(id: 'heading')</code>"
-      correct: false
-    - answer:  "<code>$('#heading')</code>"
-      correct: true
     - answer:  "None of the above"
       correct: false
 
@@ -240,17 +212,6 @@ questions:
     - answer:  "1"
       correct: false
 
-  - question: |
-      <code>a++;</code> is the same as which of the following?
-    type: "choice"
-    answers:
-    - answer:  "<code>a = a + a;</code>"
-      correct: false
-    - answer:  "<code>a = a + 1;</code>"
-      correct: true
-    - answer:  "<code>a = a + 2;</code>"
-      correct: false
-
   - question: "Is JavaScript case-sensitive or case-insensitive?"
     type: "choice"
     answers:
@@ -329,8 +290,10 @@ questions:
     correctCode: "var s3 = s1 + s2;"
 
   - question: |
-      What result does this JavaScript statement yield?
-      <pre>3 + 2 + '1';</pre>
+      In the following code, what will <code>value</code> contain?
+      <pre>
+      var x = 3;
+      var value = x + 2 + '1';</pre>
     type: "choice"
     answers:
     - answer:  "<code>6</code>"
@@ -339,6 +302,8 @@ questions:
       correct: false
     - answer:  "<code>'51'</code>"
       correct: true
+    - answer: "Nothing. The assignment to <code>value</code> will throw an error."
+      correct: false
 
   - question: |
       What does this statement do?
@@ -351,7 +316,7 @@ questions:
       correct: false
     - answer:  "Sets <code>x</code> to <code>NaN</code>."
       correct: true
-    - answer:  "Throws an exception."
+    - answer:  "It throws an error."
       correct: false
 
   - question: |
@@ -384,3 +349,192 @@ questions:
           return n * multiplier;
         }
       }
+
+  - question: |
+      Here's another closure question. This one is tricky.<br/><br/>
+      Write a function called <code>newCounter()</code>. It must return
+      a function that increments a hidden inner counter (initialized to 0),
+      returning the new value. Here's an example of its use:
+      <pre>var c1 = newCounter();
+      console.log(c1()); // prints 1
+      console.log(c1()); // prints 2
+      console.log(c1()); // prints 3
+      var c2 = newCounter();
+      console.log(c2()); // prints 1
+      console.log(c2()); // prints 2
+      console.log(c1()); // prints 4
+      </pre>
+    type: 'jscode'
+    token: '@code@'
+    wrapper: |
+      (function() {
+        @code@
+        var c1 = newCounter();
+        c1();
+        var r1 = c1();
+        var c2 = newCounter();
+        c2();
+        c2();
+        var r2 = c2();
+        return (r1 === 2) && (r2 === 3);
+      })()
+    expectedAnswer: true
+    correctCode: |
+      function newCounter() {
+        var n = 0;
+        return function() {
+          return ++n;
+        }
+      }
+
+  - question: |
+      What are the values of Expression 1 and Expression 2, below?
+      <pre>var obj = { a: 100 };
+
+      obj.a;    // Expression 1
+      obj['a']; // Expression 2
+      </pre>
+    type: "choice"
+    answers:
+    - answer:  |
+        Expression 1 has the value 100. Expression 2 has the value
+        <code>undefined</code>, because <code>obj</code> isn't an array.
+      correct: false
+    - answer:  |
+        Expression 1 has the value 100. Expression 2 throws an error.
+      correct: false
+    - answer:  |
+        Expression 1 and Expression 2 have the same value; they're just
+        two different ways to access fields in an object.
+      correct: true
+
+  - question: |
+      What does the following code print?
+      <pre>function Person(firstName, lastName) {
+        this.firstName = firstName;
+        this.lastName  = lastName;
+
+        this.toString = function() {
+          return firstName + " " + lastName;
+        }
+      }
+
+      var p = new Person("John", "Smith");
+      console.log(p.toString());
+      </pre>
+    type: "choice"
+    answers:
+    - answer:  "It doesn't print anything. JavaScript isn't Java!"
+      correct: false
+    - answer:  >
+        It prints "John Smith". Functions can be used as object constructors
+        in Javascript.
+      correct: true
+    - answer: |
+        It throws an error on the <code>new Person("John", "Smith")</code>
+        statement.
+      correct: false
+
+  - question: |
+      In an HTML page, what tag do you use to pull in external JavaScript?
+    type: 'choice'
+    answers:
+    - answer: |
+        <code>&lt;javascript src="..."&gt;&lt;/javascript&gt;
+      correct: false
+    - answer: |
+        <code>&lt;link src="..." type="javascript"&gt;&lt;/link&gt;
+      correct: false
+    - answer: |
+        <code>&lt;script src="..."&gt;&lt;/script&gt;
+      correct: true
+
+  - question: |
+      AngularJS is built on top of jQuery. It's useful to know some jQuery
+      basics when writing certain kinds of Angular code. The next few questions
+      are jQuery-specific.
+      <br/><br/>
+      Using jQuery, how can you select an HTML element with ID "heading"?
+    type: "choice"
+    answers:
+    - answer:  "<code>$('heading')</code>"
+      correct: false
+    - answer:  "<code>$('id=heading')</code>"
+      correct: false
+    - answer:  "<code>$(id: 'heading')</code>"
+      correct: false
+    - answer:  "<code>$('#heading')</code>"
+      correct: true
+    - answer:  "None of the above"
+      correct: false
+
+  - question: |
+      Given this HTML element:
+      <pre>&lt;div id="elem1"&gt;&lt;/div&gt;</pre>
+      How would you set the element's content to the string
+      "Welcome to my site."?
+    type: "choice"
+    answers:
+    - answer:  |
+        <code>$("#elem1").write("Welcome to my site.");</code>
+      correct: false
+    - answer:  |
+        <code>$("#elem1") += "Welcome to my site.";</code>
+      correct: false
+    - answer:  |
+        <code>$("#elem1").text("Welcome to my site.");</code>
+      correct: true
+
+  - question: |
+      What does this statement do?
+      <pre>$('.link').addClass('button')</pre>
+    type: "choice"
+    answers:
+    - answer: >
+        Selects the <b>first</b> element in the document that has the CSS class
+        "link" and <b>adds</b> "button" to its list of CSS classes.
+      correct: false
+    - answer: |
+        Selects the <b>first</b> element in the document that has the CSS class
+        "link" and <b>replaces</b> its CSS classes with "button".
+      correct: false
+    - answer: |
+        Selects <b>all</b> elements in the document that has the CSS class
+        "link" and <b>adds</b> "button" to their lists of CSS classes.
+      correct: true
+    - answer: |
+        Selects <b>all</b> elements in the document that has the CSS class
+        "link" and <b>replaces</b> their CSS classes with "button".
+      correct: false
+
+  - question: |
+      Given these HTML elements:
+      <pre>&lt;div id="container1"&gt;
+        &lt;span class="span1"&gt;&lt;/span&gt;
+        &lt;span class="span2"&gt;&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div id="container2"&gt;
+        &lt;span class="span1"&gt;&lt;/span&gt;
+        &lt;span class="span2"&gt;&lt;/span&gt;
+        &lt;div class="inner-container"&gt;
+          &lt;span class="span2"&gt;&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      </pre>
+      What's the easiest way to use jQuery to select the second
+      <code>&lt;span&gt;</code> element in "container2", <i>without</i>
+      selecting the one in "container1" or the one in "inner-container"?
+    type: "choice"
+    answers:
+    - answer: |
+        <code>$(".span2")</code>
+      correct: false
+    - answer: |
+        <code>$("#container2")[".span2"]</code>
+      correct: false
+    - answer: |
+        <code>$("#container2").find(".span2")</code>
+      correct: false
+    - answer: |
+        <code>$("#container2").children(".span2")</code>
+      correct: true
