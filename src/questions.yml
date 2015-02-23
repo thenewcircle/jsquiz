@@ -116,7 +116,7 @@ questions:
       correct: false
 
   - question: |
-      How do you convert a string, <code>s</code>, to lower case?"
+      How do you convert a string, <code>s</code>, to lower case?
     type: "choice"
     answers:
     - answer:  "<code>s.lower()</code>"
@@ -166,18 +166,22 @@ questions:
         return a + b;
       }
 
-  - question: >
-      If you refer to a variable that hasn't been declared, what will its
-      value be?
+  - question: |
+      If you refer to a nonexistent field (i.e., key) in a JavaScript object, what will happen?
+      <pre>var obj = { a: 10, b: 20 }
+      var x = obj.c; // What happens here?
+      </pre>
     type: "choice"
     answers:
-    - answer:  "<code>null</code>"
+    - answer:  "You'll get back a <code>null</code>"
       correct: false
-    - answer:  "<code>undefined</code>"
+    - answer:  "You'll get back <code>undefined</code>"
       correct: true
-    - answer:  "<code>0</code>"
+    - answer:  "You'll get back <code>0</code>"
       correct: false
-    - answer:  "<code>\"\"</code>"
+    - answer:  "You'll get back <code>\"\"</code>"
+      correct: false
+    - answer:  "JavaScript will throw an error."
       correct: false
 
   - question: >
