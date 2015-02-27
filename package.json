@@ -17,6 +17,7 @@
     "gulp-sourcemaps": "^1.3.0",
     "gulp-traceur": "^0.17.0",
     "gulp-util": "^3.0.3",
+    "gulp-yaml": "^0.2.3",
     "less": "^2.4.0",
     "run-sequence": "^1.0.2",
     "through2": "^0.6.3"
