@@ -101,7 +101,7 @@ questions:
 
   - question: |
       How do you create a variable <code>s</code> that is set to the string
-      "Angular"?
+      "Hello"?
     type: "choice"
     answers:
     - answer:  "<code>String s = \"Hello\";</code>"
@@ -580,3 +580,4 @@ questions:
     - answer: |
         <code>$("#container2").children(".span2")</code>
       correct: true
+
