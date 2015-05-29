@@ -6,11 +6,13 @@ var del             = require('del');
 var runSequence     = require('run-sequence');
 var sourcemaps      = require('gulp-sourcemaps');
 var angularInjector = require('gulp-angular-injector');
+var ngAnnotate      = require('gulp-ng-annotate');
 var rename          = require('gulp-rename');
 var through2        = require('through2');
 var gutil           = require('gulp-util');
 var PluginError     = gutil.PluginError;
 var yaml            = require('gulp-yaml');
+var uglify          = require('gulp-uglify');
 
 var paths = {
   scripts:      'src/*.js',
@@ -43,9 +45,13 @@ gulp.task('scripts', function() {
     .pipe(sourcemaps.init())
     // Convert from ES6 to ES5
     .pipe(traceur())
+    .pipe(ngAnnotate())
+    .pipe(gulp.dest(paths.build))
+    .pipe(uglify())
     // Minify the file, rename it, write the source map and save the
     // minified file.
     .pipe(sourcemaps.write('.'))
+    .pipe(rename("quiz.min.js"))
     .pipe(gulp.dest(paths.build));
 });
 
