@@ -1,5 +1,4 @@
 var gulp            = require('gulp');
-var traceur         = require('gulp-traceur');
 var less            = require('gulp-less');
 var concat          = require('gulp-concat');
 var del             = require('del');
@@ -19,7 +18,7 @@ var paths = {
   resources:    ['src/*.html', 'src/*.png'],
   less:         'src/*.less',
   questions:    'src/quiz.yml',
-  questionsOut: 'quiz.dat',
+  questionsOut: 'quiz.txt',
   build:        'dist'
 }
 
@@ -44,7 +43,6 @@ gulp.task('scripts', function() {
   gulp.src(paths.scripts)
     .pipe(sourcemaps.init())
     // Convert from ES6 to ES5
-    .pipe(traceur())
     .pipe(ngAnnotate())
     .pipe(gulp.dest(paths.build))
     .pipe(uglify())

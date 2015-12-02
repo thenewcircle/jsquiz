@@ -43,7 +43,7 @@ app.config(function($routeProvider) {
     controller:  "IntroCtrl",
     step:        STEP_INTRO,
     resolve:     {
-      "quizData": (quizDataService) => { return quizDataService(); }
+      "quizData": function(quizDataService) { return quizDataService(); }
     }
   })
   .when("/quiz/:num", {
@@ -51,7 +51,7 @@ app.config(function($routeProvider) {
     controller:  "QuizCtrl",
     step:        STEP_QUESTIONS,
     resolve:     {
-      "quizData": (quizDataService) => { return quizDataService(); }
+      "quizData": function(quizDataService) { return quizDataService(); }
       }
   })
   .when("/wrap-up", {
@@ -59,7 +59,7 @@ app.config(function($routeProvider) {
     controller:  "WrapUpCtrl",
     step:        STEP_WRAP_UP,
     resolve:     {
-    "quizData": (quizDataService) => { return quizDataService(); }
+    "quizData": function(quizDataService) { return quizDataService(); }
     }
   })
   .when("/reset", {
@@ -92,12 +92,12 @@ app.factory('stateService', function($cookies, $location, $route) {
   }
 
   function lookupRoutes() {
-    let routeKeys = _.keys($route.routes);
-    let stepKeys  = _.filter(routeKeys, (key) => {
+    var routeKeys = _.keys($route.routes);
+    var stepKeys  = _.filter(routeKeys, function(key) {
       return 'step' in $route.routes[key];
     });
-    let stepRoutes = _.map(stepKeys, (path) => {
-      let r = $route.routes[path];
+    var stepRoutes = _.map(stepKeys, function(path) {
+      var r = $route.routes[path];
       stepToRoutePath[r.step] = path;
     });
 
@@ -109,11 +109,11 @@ app.factory('stateService', function($cookies, $location, $route) {
 
   if ($cookies.savedState) {
     try {
-      state = JSON.parse($cookies.savedState)
+      state = JSON.parse($cookies.savedState);
       console.log("Restored state ", state);
     }
     catch (e) {
-      console.log(`Unable to parse saved state: ${e.message}`);
+      console.log("Unable to parse saved state: " + e.message);
     }
   }
 
@@ -121,15 +121,17 @@ app.factory('stateService', function($cookies, $location, $route) {
     $cookies.savedState = JSON.stringify(state);
   }
 
-  function saveStep(step, questionIndex=0) {
+  function saveStep(step, questionIndex) {
+    if (questionIndex === undefined) questionIndex = 0;
     state.step          = step;
     state.questionIndex = questionIndex;
 
     saveState(state);
   }
 
-  function pathForStep(step, questionIndex=0) {
-    let path = stepToRoutePath[step];
+  function pathForStep(step, questionIndex) {
+    if (questionIndex === undefined) questionIndex = 0;
+    var path = stepToRoutePath[step];
     if (path) {
       path = path.replace(":num", questionIndex + 1);
     }
@@ -138,49 +140,52 @@ app.factory('stateService', function($cookies, $location, $route) {
   }
 
   return {
-    saveStep: (step, questionIndex=0) => {
+    saveStep: function (step, questionIndex) {
+      if (questionIndex === undefined) questionIndex = 0;
       saveStep(step, questionIndex);
     },
 
-    saveAnswer: (answer) => {
-      let index = answer.questionIndex;
-      state.answers[`q${index}`] = answer;
+    saveAnswer: function(answer) {
+      var index = answer.questionIndex;
+      state.answers["q" + index] = answer;
       saveState(state, index);
     },
 
-    saveTries: (tries) => {
+    saveTries: function(tries) {
       state.tries = tries;
       saveState(state, state.questionIndex);
-      console.log(`Saved tries ${tries}`, state);
+      console.log("Saved tries " + tries, state);
     },
 
-    getAnswer: (questionIndex) => {
-      return state.answers[`q${questionIndex}`];
+    getAnswer: function(questionIndex) {
+      return state.answers["q" + questionIndex];
     },
 
-    getState: () => {
+    getState: function() {
       return state;
     },
 
-    resetState: () => {
+    resetState: function() {
       initState();
       saveState(state);
       console.log("Reset state to ", state);
     },
 
-    pathForStep: (step, questionIndex=0) => {
+    pathForStep: function(step, questionIndex) {
+      if (questionIndex === undefined) questionIndex = 0;
       return pathForStep(step, questionIndex);
     },
 
-    redirectToStep: (step, questionIndex=0) => {
-      let path = pathForStep(step, questionIndex);
+    redirectToStep: function(step, questionIndex) {
+      if (questionIndex === undefined) questionIndex = 0;
+      var path = pathForStep(step, questionIndex);
       if (path) {
         saveStep(step, questionIndex);
-        console.log(`Redirecting to ${path}`);
+        console.log("Redirecting to " + path);
         $location.path(path);
       }
       else {
-        console.log(`(BUG) No path for step ${step}`);
+        console.log("(BUG) No path for step " + step);
       }
     }
   }
@@ -189,14 +194,11 @@ app.factory('stateService', function($cookies, $location, $route) {
 // Check the current state, redirecting if it isn't correct.
 app.factory('checkState', function(stateService, $location) {
   return function() {
-    let state = stateService.getState();
-
-    console.log(`(checkState) ${$location.path()}`);
-    console.log("(checkState) state=", state);
+    var state = stateService.getState();
 
     function conditionallyRedirect(path) {
       if ($location.path() !== path) {
-        console.log(`Redirecting to ${path}`);
+        console.log("Redirecting to " + path);
         $location.path(path);
         return true;
       }
@@ -210,7 +212,7 @@ app.factory('checkState', function(stateService, $location) {
         break;
 
       case STEP_QUESTIONS:
-        let path = stateService.pathForStep(STEP_QUESTIONS, state.questionIndex);
+        var path = stateService.pathForStep(STEP_QUESTIONS, state.questionIndex);
         return conditionallyRedirect(path);
 
       case 'wrap-up':
@@ -235,15 +237,16 @@ app.factory('quizDataService', function($http, $q, logging) {
   function validateAndProcessQuestions(questions) {
 
     function validateRequiredKeys(question, index, keys) {
-      for (let k of keys) {
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
         if (! question[k])
-          throw new Error(`Missing required "${k}" key in question ${index}.`);
+          throw new Error("Missing required " + k + " key in question " + index);
       }
     }
 
     function validateAndAugmentCodeQuestion(q) {
       validateRequiredKeys(q, i, ['question', 'wrapper', 'token',
-        'correctCode', 'expectedAnswer']);
+                                  'correctCode', 'expectedAnswer']);
 
       q.tries = 0;
       q.maxTries = MAX_CODE_TRIES;
@@ -256,19 +259,20 @@ app.factory('quizDataService', function($http, $q, logging) {
 
     function validateAndAugmentChoiceQuestion(q) {
       validateRequiredKeys(q, i, ['question', 'answers']);
-      for (let a of q.answers) {
+      for (var i = 0; i < q.answers.length; i++) {
+        var a = q.answers[i];
         if (! (a.answer && (typeof a.correct === 'boolean'))) {
-          throw new Error(`Malformed answers section in question ${i}.`);
+          throw new Error("Malformed answers section in question " + i);
         }
       }
 
       return q;
     }
 
-    for (let i = 0; i < questions.length; i++) {
-      let q = questions[i];
+    for (var i = 0; i < questions.length; i++) {
+      var q = questions[i];
       if (! q.type) {
-        throw new Error(`Missing "type" field in question ${i}.`);
+        throw new Error("Missing " + type + " field in question " + i);
       }
 
       switch (q.type) {
@@ -286,19 +290,19 @@ app.factory('quizDataService', function($http, $q, logging) {
   }
 
   function loadQuestions() {
-    let deferred = $q.defer();
+    var deferred = $q.defer();
 
     log.debug("Loading questions from server.");
     $http
-      .get("quiz.dat")
-      .success((data) => {
-        let decodedData = JSON.parse(window.atob(data));
-        let questions = validateAndProcessQuestions(decodedData.questions);
-        log.debug(`Loaded ${questions.length} questions.`);
+      .get("quiz.txt")
+      .success(function(data) {
+        var decodedData = JSON.parse(window.atob(data));
+        var questions = validateAndProcessQuestions(decodedData.questions);
+        log.debug("Loaded " + questions.length +  "questions.");
         decodedData.questions = questions;
         deferred.resolve(decodedData);
       })
-      .error((data) => {
+      .error(function(data) {
         log.error("Failed to load questions.");
         deferred.reject("Failed to load questions.");
       });
@@ -329,8 +333,9 @@ app.factory('logging', function() {
   appender.setThreshold(LOG_LEVEL);
 
   return {
-    logger: (name, level=LOG_DEBUG) => {
-      let logger = log4javascript.getLogger(name);
+    logger: function(name, level) {
+      if (level === undefined) level = LOG_DEBUG;
+      var logger = log4javascript.getLogger(name);
       logger.addAppender(appender);
       logger.setLevel(level);
       return logger;
@@ -378,15 +383,15 @@ app.controller('IntroCtrl',
   function($scope, stateService, checkState, logging, quizData) {
     if (checkState()) return;
 
-    let log = logging.logger('IntroCtrl');
+    var log = logging.logger('IntroCtrl');
 
     stateService.saveStep(STEP_INTRO);
 
-    $scope.gotoFirstQuestion = () => {
+    $scope.gotoFirstQuestion = function() {
       stateService.redirectToStep(STEP_QUESTIONS, 0);
     }
 
-    let questions = quizData.questions;
+    var questions = quizData.questions;
     $scope.totalQuestions = questions.length;
     $scope.intro = quizData.intro;
   }
@@ -396,35 +401,35 @@ app.controller('WrapUpCtrl',
   function($scope, stateService, checkState, quizData, logging) {
     if (checkState()) return checkState();
 
-    let log = logging.logger('WrapUpCtrl');
+    var log = logging.logger('WrapUpCtrl');
 
-    let questions = quizData.questions;
+    var questions = quizData.questions;
 
     $scope.wrapUp = quizData.wrapUp;
 
     log.debug("WrapUpCtrl: questions=", questions);
-    let answers = stateService.getState().answers;
+    var answers = stateService.getState().answers;
     log.debug("WrapUpCtrl: answers=", answers);
 
     // Filter the list of incorrect answers and augment it with information
     // more suitable to the view.
 
-    let incorrectAnswers = _.filter(answers, (a) => { return !a.correct; });
+    var incorrectAnswers = _.filter(answers, function(a) { return !a.correct; });
     log.debug("WrapUpCtrl: incorrectAnswers", incorrectAnswers);
-    let totalAnswers = _.keys(answers).length;
+    var totalAnswers = _.keys(answers).length;
     $scope.totalCorrect = totalAnswers - incorrectAnswers.length;
     log.debug('WrapUpCtrl: correct', $scope.totalCorrect);
     $scope.score = Math.round(($scope.totalCorrect * 100) / totalAnswers);
     log.debug('WrapUpCtrl: score', $scope.score);
     $scope.totalQuestions = questions.length;
 
-    if (incorrectAnswers.length == 0)
+    if (incorrectAnswers.length === 0)
       $scope.incorrectAnswers = null;
 
     else {
       $scope.incorrectAnswers = _.filter(incorrectAnswers, function(a) {
-        let i = a.questionIndex;
-        let question = questions[i];
+        var i = a.questionIndex;
+        var question = questions[i];
         a.question = question.question;
         a.questionType = question.type;
 
@@ -435,8 +440,8 @@ app.controller('WrapUpCtrl',
             break;
 
           case 'choice':
-            let correctAnswer = _.filter(question.answers,
-                                         (a) => { return a.correct; })[0];
+            var correctAnswer = _.filter(question.answers,
+                                         function(a) { return a.correct; })[0];
             a.correctAnswer   = correctAnswer.answer;
             a.incorrectAnswer = question.answers[parseInt(a.answer)].answer;
             break;
@@ -453,22 +458,22 @@ app.controller('QuizCtrl',
 
     if (checkState()) return checkState();
 
-    let log = logging.logger('QuizCtrl');
+    var log = logging.logger('QuizCtrl');
 
-    let questions      = quizData.questions;
-    let questionNumber = $routeParams.num;
-    let questionIndex  = questionNumber - 1;
-    let testedValue    = null;
+    var questions      = quizData.questions;
+    var questionNumber = $routeParams.num;
+    var questionIndex  = questionNumber - 1;
+    var testedValue    = null;
 
     if (questionIndex >= questions.length)
       stateService.redirectToStep(STEP_WRAP_UP);
 
-    let state = stateService.getState();
+    var state = stateService.getState();
 
     $scope.currentQuestion = questions[questionIndex];
     $scope.questionIndex   = questionIndex;
 
-    let answer = stateService.getAnswer(questionIndex);
+    var answer = stateService.getAnswer(questionIndex);
 
     if (answer) {
       // Restore the settings, so they're reflected in the view. (This might
@@ -485,16 +490,16 @@ app.controller('QuizCtrl',
 
     function multipleChoiceIsCorrect(question) {
       // The answer to a multiple choice question is the index of the choice.
-      let userAnswer = question.answers[question.answer];
+      var userAnswer = question.answers[question.answer];
       return userAnswer.correct;
     }
 
     function codeAnswerIsCorrect(question) {
       log.debug("answer is: ", question.answer);
-      let code = question.wrapper.replace(question.token, question.answer);
+      var code = question.wrapper.replace(question.token, question.answer);
       log.debug("Evaluating: ", code);
       try {
-        let result = eval(code);
+        var result = eval(code);
         return result === eval(question.expectedAnswer);
       }
       catch (e) {
@@ -504,7 +509,7 @@ app.controller('QuizCtrl',
     }
 
     // Called when the Test Answer button is pressed on a code question page.
-    $scope.testCodeAnswer = (question) => {
+    $scope.testCodeAnswer = function(question) {
       if (question.tries < question.maxTries) {
         question.tries++;
         stateService.saveTries(question.tries);
@@ -513,7 +518,7 @@ app.controller('QuizCtrl',
       }
     }
 
-    let showTryResult = (question, correct) => {
+    var showTryResult = function(question, correct) {
       if ((question.type === 'choice') ||
           ((question.tries === 0) && (!question.recorded)) ||
           (question.isCorrect !== correct)) {
@@ -523,7 +528,7 @@ app.controller('QuizCtrl',
       return true;
     }
 
-    let showAnswerStatus = (question, correct) => {
+    var showAnswerStatus = function(question, correct) {
       switch (question.type) {
         case 'jscode':
           return showTryResult(question, correct);
@@ -532,18 +537,18 @@ app.controller('QuizCtrl',
       }
     }
 
-    $scope.showIncorrectAnswerStatus = () => {
+    $scope.showIncorrectAnswerStatus = function() {
       return showAnswerStatus($scope.currentQuestion, false);
     }
 
-    $scope.showCorrectAnswerStatus = () => {
+    $scope.showCorrectAnswerStatus = function() {
       return showAnswerStatus($scope.currentQuestion, true);
     }
 
     // Record an answer.
-    $scope.recordAnswer = () => {
-      let question = $scope.currentQuestion;
-      let correct = false;
+    $scope.recordAnswer = function() {
+      var question = $scope.currentQuestion;
+      var correct = false;
       switch (question.type) {
         case 'choice':
           correct = multipleChoiceIsCorrect(question);
@@ -554,7 +559,7 @@ app.controller('QuizCtrl',
           break;
       }
 
-      let answer = {
+      var answer = {
         correct:       correct,
         questionIndex: $scope.questionIndex,
         answer:        question.answer
@@ -566,8 +571,9 @@ app.controller('QuizCtrl',
       $scope.currentQuestion.isCorrect = correct;
     }
 
-    $scope.next = () => {
-      log.debug(`next: questionIndex=${questionIndex}, total=${questions.length}`);
+    $scope.next = function() {
+      log.debug("next: questionIndex=" + questionIndex + ", total=" +
+                questions.length);
       if (questionIndex >= questions.length) {
         // Last question. Over to wrap-up.
         stateService.redirectToStep(STEP_WRAP_UP);
